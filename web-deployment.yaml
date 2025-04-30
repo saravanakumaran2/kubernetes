@@ -21,35 +21,6 @@ spec:
         app: demo
     spec:
       containers:
-      - name: mysql
-        image: mysql:5.7
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: secret
-              key: mysql-root-password
-        - name: MYSQL_USER
-          valueFrom:
-            secretKeyRef:
-              name: secret
-              key: mysql-user
-        - name: MYSQL_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: secret
-              key: mysql-password
-        - name: MYSQL_DATABASE
-          valueFrom:
-            secretKeyRef:
-              name: secret
-              key: mysql-database
-        ports:
-        - containerPort: 3306
-        volumeMounts:
-        - name: sqlstorage
-          mountPath: /var/lib/mysql
-
       - name: wordpress
         image: wordpress:latest
         env:
@@ -82,7 +53,4 @@ spec:
       - name: webstorage
         persistentVolumeClaim:
           claimName: webpvc
-      - name: sqlstorage
-        persistentVolumeClaim:
-          claimName: sqlpvc 
 
