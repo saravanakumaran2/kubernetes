@@ -1,0 +1,9 @@
+---
+releases:
+  - name: website
+    chart: ./website
+    installed: false
+    values:
+      - ./website/values.yaml
+
+
