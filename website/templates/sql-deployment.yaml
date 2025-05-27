@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.mysql.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  serviceName: {{ .Values.mysql.name }}
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: {{ .Values.mysql.name }}
+        image: {{ .Values.mysql.image }}
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secret.name }}
+              key: mysql-root-password
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secret.name }}
+              key: mysql-user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secret.name }}
+              key: mysql-password
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secret.name }}
+              key: mysql-database
+        readinessProbe:
+          exec:
+            command:
+              - sh
+              - -c
+              - mysqladmin ping -h 127.0.0.1 -uroot -p${MYSQL_ROOT_PASSWORD}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+        ports:
+        - containerPort: {{ .Values.mysql.port }}
+        volumeMounts:
+        - name: sqlstorage
+          mountPath: {{ .Values.mysql.hostPath }}
+      volumes:
+      - name: sqlstorage
+        persistentVolumeClaim:
+          claimName: {{ .Values.mysql.name }}pvc

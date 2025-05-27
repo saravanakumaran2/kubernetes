@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: webpv
-  namespace: develop
+  name: {{ .Values.mysql.name }}pv
+  namespace: {{ .Values.namespace }}
 spec:
   capacity:
-    storage: 1Gi
+    storage: {{ .Values.mysql.storage }}
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   volumeMode: Filesystem
   hostPath:
-    path: /mnt/data/html
+    path: {{ .Values.mysql.hostPath }}

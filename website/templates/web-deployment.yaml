@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.web.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: web
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command: ['sh', '-c', 'until nc -z {{ .Values.mysql.name }}.{{ .Values.namespace }}.svc.cluster.local {{ .Values.mysql.port }}; do echo "waiting for mysql"; sleep 2; done;']
+      containers:
+        - name: {{ .Values.web.name }}
+          image: {{ .Values.web.image }}
+          env:
+            - name: WORDPRESS_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.name }}
+                  key: wordpress-db-host
+            - name: WORDPRESS_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.name }}
+                  key: mysql-user
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.name }}
+                  key: mysql-password
+            - name: WORDPRESS_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.name }}
+                  key: mysql-database
+          ports:
+            - containerPort: {{ .Values.web.port }}
+          volumeMounts:
+            - name: webstorage
+              mountPath: {{ .Values.web.hostPath }}
+      volumes:
+        - name: webstorage
+          persistentVolumeClaim:
+            claimName: {{ .Values.web.name }}pvc
